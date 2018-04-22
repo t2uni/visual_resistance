@@ -1,88 +1,14 @@
 """Visualise the resistances between contacts on a substrate."""
 
-from asyncio import SelectorEventLoop
+import asyncio
+from dataprovider import DataProvider
 from graphviz import Graph
+from graphwindow import GraphWindow
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
-from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtSvg import QSvgWidget
-import random
+from PyQt5.QtWidgets import QApplication
 import sys
-from threading import Thread
-import time
 from typing import Dict, Tuple, List
 
-
-class MainWindow(QMainWindow):
-    """ Qt application window showing a single vector graph.
-
-    Attributes:
-        _graph_display  Widget that shows the graph image
-    """
-    window_width = 600  # type: float  # Height is computed from aspect ratio
-
-    def __init__(self, graph_svg: bytes = None,
-                 aspect_ratio: float = 1.0) -> None:
-        super().__init__()
-        
-        # Add image widget:
-        self._graph_display = QSvgWidget()
-        self.setCentralWidget(self._graph_display)
-        if graph_svg is not None:
-            self.set_graph(graph_svg)
-#        self._graph_display.mousePressEvent.connect()
-
-        # Set correct aspect ratio:
-        self.setFixedSize(self.window_width,
-                          self.window_width * aspect_ratio)
-
-    @pyqtSlot(bytes)
-    def set_graph(self, graph_svg: bytes) -> None:
-        """Renders SVG bytes in the graph display."""
-        self._graph_display.load(graph_svg)
-
-
-class DataProvider(QObject):
-    """ Emits a Qt signal whenever a connection has been detected. 
-
-    Call start() to begin listening for connection detection,
-    stop() to terminate thread.
-
-    Attributes:
-        _listen_loop  Event loop to receive detection data
-        _should_run  Control loop run time
-    """
-
-    def __init__(self):
-        super().__init__()
-        
-        self._listen_thread = Thread(target=self._listen)
-        self._should_run = False  # type: bool
-
-    def start(self):
-        self._should_run = True
-        self._listen_thread.start()
-
-    def stop(self):
-        self._should_run = False
-        self._listen_thread.join()
-        
-    def _listen(self):
-        while self._should_run:
-            # TODO: listen for signals from easy2point process, remove following dummy code
-            time.sleep(2)
-            
-            first_connection = random.randint(1, 24)
-            second_connection = first_connection
-            while second_connection == first_connection:
-                second_connection = random.randint(1, 24)
-            self.connection_detected.emit(
-                "{:02d}".format(first_connection),
-                "{:02d}".format(second_connection)
-            )
-    
-    # Arguments: name of contact on which a connection was detected; resistance value measured
-    connection_detected = pyqtSignal(str, str)  # TODO: pass resistance value
-        
         
 class Grid(QObject):
     """ graphviz representation of contact board grid.
@@ -184,7 +110,7 @@ def main() -> int:
     board = Grid(grid_size, coord_size, contact_numbers)
                      
     app = QApplication(sys.argv)
-    window = MainWindow(board.get_svg(), board.grid_aspect_ratio)
+    window = GraphWindow(board.get_svg(), board.grid_aspect_ratio)
 
     board.connection_added.connect(window.set_graph)
     provider = DataProvider()
