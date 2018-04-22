@@ -1,6 +1,5 @@
 """Visualise the resistances between contacts on a substrate."""
 
-import asyncio
 from dataprovider import DataProvider
 from graphviz import Graph
 from graphwindow import GraphWindow
@@ -108,7 +107,7 @@ def main() -> int:
     coord_size = 8.0  # type: float
 
     board = Grid(grid_size, coord_size, contact_numbers)
-                     
+
     app = QApplication(sys.argv)
     window = GraphWindow(board.get_svg(), board.grid_aspect_ratio)
 
@@ -118,7 +117,7 @@ def main() -> int:
     provider.start()
     
     window.show()
-    exit_code =  app.exec()  # type: int
+    exit_code = app.exec()  # type: int
 
     provider.stop()
     return exit_code

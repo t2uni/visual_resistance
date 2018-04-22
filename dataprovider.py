@@ -1,3 +1,4 @@
+import asyncio
 from PyQt5.QtCore import pyqtSignal, QObject
 import time
 import random
